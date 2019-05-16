@@ -1,4 +1,5 @@
 import csv
+import re
 
 
 def get_message(code, log):
@@ -14,6 +15,9 @@ def get_message(code, log):
     # Clean up the extracted message
     message = message.replace(',', '')
     message = message.replace('"', '')
+
+    regex = re.compile('[^a-zA-Z]')
+    message = regex.sub(' ', message)
 
     return message
 
