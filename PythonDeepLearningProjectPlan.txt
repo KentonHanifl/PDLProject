@@ -1,0 +1,37 @@
+Problem: Log's are too big (faced by Cerner, "Splunk", anyone with big logs)
+
+Solution: Only output the anomalies
+
+--------------------------------------------------------------
+Implementation:
+
+Preprocess:
+	Remove all periods, IPS ("client: {IPADDRESS}"), etc...
+
+Map features:
+	Data:
+		1 or more lines of errors (grouped)
+		error lines []
+		Previous 10 lines []
+	Features:
+		# of error lines
+		tokenized error lines
+		tokenized previous lines
+
+	Corpus for tokens:
+		Just from the tokens in error lines and previous lines in the form:
+		{ word: count, word: count }
+		Don't need the order of words because they always come in the same order in logs
+
+Clusters (k=2):
+	Get cluster labels for all data points
+	All the data in the smaller cluster are anomalies and vice versa
+
+Feed to ML model:
+	either NN or KNN classifier
+
+Output:
+	On new data, 
+	if anomalous, save it.
+	else, trash it.
+	
