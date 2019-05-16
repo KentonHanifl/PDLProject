@@ -1,0 +1,22 @@
+{"log":"elasticsearch service available\n","stream":"stdout","time":"2018-11-01T06:50:41.159872103Z"}
+{"log":"2018-11-01 06:50:45 +0000 [info]: parsing config file is succeeded path=\"/fluentd/etc/fluent.conf\"\n","stream":"stdout","time":"2018-11-01T06:50:45.362563321Z"}
+{"log":"2018-11-01 06:50:49 +0000 [info]: using configuration file: \u003cROOT\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517571027Z"}
+{"log":"  \u003csource\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517765818Z"}
+{"log":"    @type systemd\n","stream":"stdout","time":"2018-11-01T06:50:49.517777509Z"}
+{"log":"    @id input_systemd_icp\n","stream":"stdout","time":"2018-11-01T06:50:49.517879509Z"}
+{"log":"    @log_level \"info\"\n","stream":"stdout","time":"2018-11-01T06:50:49.517891829Z"}
+{"log":"    tag \"icp-audit\"\n","stream":"stdout","time":"2018-11-01T06:50:49.517896779Z"}
+{"log":"    path \"/run/log/journal\"\n","stream":"stdout","time":"2018-11-01T06:50:49.517901339Z"}
+{"log":"    matches [{ \"SYSLOG_IDENTIFIER\": \"icp-audit\" }]\n","stream":"stdout","time":"2018-11-01T06:50:49.517906629Z"}
+{"log":"    read_from_head true\n","stream":"stdout","time":"2018-11-01T06:50:49.517912139Z"}
+{"log":"    \u003cstorage\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517918359Z"}
+{"log":"      @type \"local\"\n","stream":"stdout","time":"2018-11-01T06:50:49.517922909Z"}
+{"log":"      persistent true\n","stream":"stdout","time":"2018-11-01T06:50:49.517927859Z"}
+{"log":"      path \"/icp-audit\"\n","stream":"stdout","time":"2018-11-01T06:50:49.517933599Z"}
+{"log":"    \u003c/storage\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517963279Z"}
+{"log":"    \u003centry\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517970859Z"}
+{"log":"      fields_strip_underscores true\n","stream":"stdout","time":"2018-11-01T06:50:49.517975959Z"}
+{"log":"      fields_lowercase true\n","stream":"stdout","time":"2018-11-01T06:50 :49.517981129Z"}
+{"log":"    \u003c/entry\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517985419Z"}
+{"log":"  \u003c/source\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517990729Z"}
+{"log":"  \u003csource\u003e\n","stream":"stdout","time":"2018-11-01T06:50:49.517995959Z"}
