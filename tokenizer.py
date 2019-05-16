@@ -1,9 +1,14 @@
 import pandas as pd
+from sklearn.cluster import KMeans
+
+print('starting')
 
 class ErrorBlock:
     def __init__(self):
         self.errs = []
         self.prev = []
+
+        self.features = {}
 
     def __str__(self):
         return "{}\n\n{}".format(self.errs.__str__(),self.prev.__str__())
@@ -17,6 +22,26 @@ class ErrorBlock:
         if startIdx<0: startIdx = 0
         self.prev = alldata.iloc[startIdx:endIdx]
 
+    def setFeatures(self,corpus):
+        
+        tokens = {k:0 for k in corpus.keys()}
+        #for each error in the block
+        for error in self.errs:
+            #for each word in the error, inc the count
+            for word in error.MESSAGE.split(' '):
+                if word in tokens.keys():
+                    tokens[word]+=1
+        #for each previous line
+        for prev in self.prev.MESSAGE:
+            #for each word in the line, inc the count
+            for word in prev.split(' '):
+                if word in tokens.keys():
+                    tokens[word]+=1
+
+        self.features = tokens
+        return self
+        
+        
 def getCorpus(errorblocklist):
     corpus = dict()
     #for each errorblock
@@ -72,6 +97,25 @@ errorblock.setPrevLines(data)
 errorblocks.append(errorblock)
 
 corpus = getCorpus(errorblocks)
+errorblocks = [errblock.setFeatures(corpus) for errblock in errorblocks]
+x = [list(errblock.features.values()) for errblock in errorblocks]
+
+kmeans = KMeans(n_clusters=2,random_state=0).fit(x)
+
+print(kmeans.labels_
+
+
+
+###### template
+##y = []
+##for c in range(n_classes):
+##    it = c*8
+##    cls = pcatrans[n_samples*c:n_samples*(c+1)]
+##    kmeans = KMeans(n_clusters=8, random_state=0).fit(cls)
+##    labels = kmeans.labels_
+##    labels = [label+it for label in labels]
+##    y+=labels
+
 
 
 ####for formatting the csv, but this doesn't work well
