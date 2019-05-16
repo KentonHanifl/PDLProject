@@ -1,0 +1,15 @@
+LOGCODE,MESSAGE
+[info], " “parsing config file is succeeded path=\/fluentd/etc/fluent.conf\\n"""     
+[info], " “using configuration file: \u003cROOT\u003e\n"""     
+[INFO], " “console - \u001b[39mpassword  icptest\n"""     
+[INFO], " “console - \u001b[39mauthMechanism  DEFAULT\n"""     
+[INFO], " “acms - \u001b[39mMONGO client: [object Object]\n"""     
+[ERROR], " “acms - \u001b[39mError loading /iam/pap/cloudant.json: Error: Cannot find module ‘/iam/pap/cloudant.json'\n"""     
+[ERROR], “console - \u001b[39m(node:200) DeprecationWarning: current URL string parser is deprecated  and will be removed in a future version. To use the new parser " pass option { useNewUrlParser: true } to MongoClient.connect.\n"""   
+[DEBUG],  “acms - \u001b[39mPolicy role set: [ 'crn:v1:icp:private:iam::::role:ClusterAdministrator' "\n"""    
+I, " “NETWORK  [listener] connection accepted from 127.0.0.1:35930 #3477 (1067 connections now open)\n"""     
+I,  “NETWORK  [conn3477] received client metadata from 127.0.0.1:35930 conn3477: { application: { name: \MongoDB Shell\ }  driver: { name: \MongoDB Internal Client\  version: \4.0.0\ }  os: { type: \Linux\  name: \Ubuntu\ " architecture: \x86_64\ version: \16.04\} }\n"""
+level=info, " “msg=\redis not configured\ go.version=go1.7.6 instance.id=a5add2e0-5bf6-4a73-80f2-1884c174d9b8 version=v2.6.2 \n"""     
+level=info, " “msg=\using inmemory blob descriptor cache\ go.version=go1.7.6 instance.id=a5add2e0-5bf6-4a73-80f2-1884c174d9b8 version=v2.6.2 \n"""     
+Error, " “Key already exists (/mariadb_lock) [18954]\n"""     
+[Error],  “17#0: *29893 [lua] rbac.lua:39: get_auth_token(): No auth token in request.  client: 9.242.240.71  server: dcos.*  request: \GET /api/v1/query?query=sum(rate(container_cpu_usage_seconds_total%7Bid=%22/%22%7D[2m]))by(instance) HTTP/1.1\  host: \monitoring-prometheus:9090\\n” 
