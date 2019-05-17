@@ -1,7 +1,6 @@
 import csv
 import re
 
-
 def get_message(code, log):
     lengthToEndOfMessage = 2
 
@@ -16,8 +15,12 @@ def get_message(code, log):
     message = message.replace(',', '')
     message = message.replace('"', '')
 
+    # Remove all non alphabet characters
     regex = re.compile('[^a-zA-Z]')
     message = regex.sub(' ', message)
+
+    # Remove the 'n' at the end of every log
+    message = message[:-2]
 
     return message
 
