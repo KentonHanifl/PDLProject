@@ -1,7 +1,13 @@
+import time
+start = int(time.time())
+
+data_path = "TestData/cleaned_logs_only_alphabet.csv"
+
 import pandas as pd
 from sklearn.cluster import KMeans
 
-print('starting')
+
+print('done importing')
 
 class ErrorBlock:
     def __init__(self):
@@ -18,7 +24,7 @@ class ErrorBlock:
 
     def setPrevLines(self,alldata):
         endIdx = self.getFirstErrorIdx()
-        startIdx = endIdx-10 
+        startIdx = endIdx-10
         if startIdx<0: startIdx = 0
         self.prev = alldata.iloc[startIdx:endIdx]
 
@@ -28,13 +34,13 @@ class ErrorBlock:
         #for each error in the block
         for error in self.errs:
             #for each word in the error, inc the count
-            for word in error.MESSAGE.split(' '):
+            for word in str(error.MESSAGE).split(' '):
                 if word in tokens.keys():
                     tokens[word]+=1
         #for each previous line
         for prev in self.prev.MESSAGE:
             #for each word in the line, inc the count
-            for word in prev.split(' '):
+            for word in str(prev).split(' '):
                 if word in tokens.keys():
                     tokens[word]+=1
 
@@ -49,7 +55,7 @@ def getCorpus(errorblocklist):
         #for each error in the block
         for error in errorblock.errs:
             #for each word in the error, add to the corpus or increment the value
-            for word in error.MESSAGE.split(' '):
+            for word in str(error.MESSAGE).split(' '):
                 if word in corpus.keys():
                     corpus[word]+=1
                 else:
@@ -57,17 +63,27 @@ def getCorpus(errorblocklist):
         #for each previous line
         for prev in errorblock.prev.MESSAGE:
             #for each word in the line, add to the corpus or increment the value
-            for word in prev.split(' '):
-                if word == 'LOGCODE': print("fuck")
+            for word in str(prev).split(' '):
                 if word in corpus.keys():
                     corpus[word]+=1
                 else:
                     corpus[word]=1
-    corpus.pop('')
-    corpus.pop('"')
+    try:
+        corpus.pop('')
+    except KeyError:
+        pass
+    try:
+        corpus.pop(' ')
+    except KeyError:
+        pass
+    try:
+        corpus.pop('"')
+    except KeyError:
+        pass
     return corpus
 #load dataset
-data = pd.read_csv("reformat.csv",header=0,encoding='macintosh')
+#data = pd.read_csv("reformat.csv",header=0,encoding='macintosh')
+data = pd.read_csv(data_path,header=0,encoding='macintosh')
 #get all error lines
 all_errs = data.loc[(data['LOGCODE'].str.lower().str.contains("e"))&(~data['LOGCODE'].str.lower().str.contains("d"))&(~data['LOGCODE'].str.lower().str.contains("f")) ]
 
@@ -96,15 +112,55 @@ for idx in all_errs.index[1:]:
 errorblock.setPrevLines(data)
 errorblocks.append(errorblock)
 
+#[  13 2554]
+##del errorblocks[13]
+##del errorblocks[2553]
+
 corpus = getCorpus(errorblocks)
 errorblocks = [errblock.setFeatures(corpus) for errblock in errorblocks]
 x = [list(errblock.features.values()) for errblock in errorblocks]
 
-kmeans = KMeans(n_clusters=2,random_state=0).fit(x)
+from sklearn.preprocessing import MinMaxScaler
+scaled = MinMaxScaler().fit(x).transform(x)
 
-print(kmeans.labels_
+from sklearn.decomposition import PCA
+pca = PCA(n_components = 2)#'mle', svd_solver = 'full')
+##x = pca.fit_transform(scaled)
+scaled = pca.fit_transform(scaled)
+##from sklearn.preprocessing import MinMaxScaler
+##
+##scaled = MinMaxScaler().fit(x).transform(x)
+
+kmeans = KMeans(n_clusters=2).fit(scaled)
+import numpy
+unique, counts = numpy.unique(kmeans.labels_, return_counts=True)
 
 
+LABEL_COLOR_MAP = {0 : 'green',
+                   1 : 'red'
+##                   2 : 'blue',
+##                   3 : 'yellow'
+                   }
+
+color = [LABEL_COLOR_MAP[i] for i in kmeans.labels_]
+
+import matplotlib.pyplot as plt
+
+plt.scatter(scaled[:,0],scaled[:,1],c=color)
+
+print("feature size: {}".format(len(scaled[0])))
+
+for idx,cluster in enumerate(counts):
+    print("{} cluster: {}".format(LABEL_COLOR_MAP[idx],cluster))
+#print("cluster1: {}, cluster2: {}".format(counts[0],counts[1]))
+##weirdOnes = numpy.where(kmeans.labels_ == 1)[0]
+##print("weird ones are: {}".format(weirdOnes))
+
+end = int(time.time())
+print("took {} seconds".format(end-start))
+
+
+plt.show()
 
 ###### template
 ##y = []
