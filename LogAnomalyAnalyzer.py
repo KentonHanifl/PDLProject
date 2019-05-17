@@ -1,35 +1,32 @@
+#keep track of how long it takes to run
 import time
 start = int(time.time())
 
-data_path = "TestData/cleaned_logs_only_alphabet.csv"
-
-import pandas as pd
-from sklearn.cluster import KMeans
-
-
-print('done importing')
+print('done importing') #it takes a few seconds...
 
 class ErrorBlock:
     def __init__(self):
         self.errs = []
         self.prev = []
-
         self.features = {}
 
     def __str__(self):
-        return "{}\n\n{}".format(self.errs.__str__(),self.prev.__str__())
-
+        errorstring = ""
+        for error in self.errs:
+            errorstring += str(error.name)+"    "+error[0]+error[1]+"\n"
+        return "{}\n{}".format(self.prev,errorstring)
+    
     def getFirstErrorIdx(self):
         return self.errs[0].name
 
     def setPrevLines(self,alldata):
+        #get & set as self.prev the last {x} lines before the error block
         endIdx = self.getFirstErrorIdx()
-        startIdx = endIdx-10
-        if startIdx<0: startIdx = 0
+        startIdx = endIdx-10 #10 is just a magic number. you can look as far back as you want from the error block
+        if startIdx<0: startIdx = 0 # make start index 0 if it's <0
         self.prev = alldata.iloc[startIdx:endIdx]
 
     def setFeatures(self,corpus):
-        
         tokens = {k:0 for k in corpus.keys()}
         #for each error in the block
         for error in self.errs:
@@ -45,6 +42,10 @@ class ErrorBlock:
                     tokens[word]+=1
 
         self.features = tokens
+
+        #return self for eazy tokenizing with the:
+        #"errorblocks = [errblock.setFeatures(corpus) for errblock in errorblocks]"
+        #line down below in the main program
         return self
         
         
@@ -68,6 +69,8 @@ def getCorpus(errorblocklist):
                     corpus[word]+=1
                 else:
                     corpus[word]=1
+
+    #remove things that are obviously not words
     try:
         corpus.pop('')
     except KeyError:
@@ -80,14 +83,19 @@ def getCorpus(errorblocklist):
         corpus.pop('"')
     except KeyError:
         pass
+
     return corpus
+
 #load dataset
-#data = pd.read_csv("reformat.csv",header=0,encoding='macintosh')
+import pandas as pd
+data_path = "TestData/cleaned_logs_only_alphabet.csv"
 data = pd.read_csv(data_path,header=0,encoding='macintosh')
+
 #get all error lines
 all_errs = data.loc[(data['LOGCODE'].str.lower().str.contains("e"))&(~data['LOGCODE'].str.lower().str.contains("d"))&(~data['LOGCODE'].str.lower().str.contains("f")) ]
 
-###get all the error blocks
+########################################
+#get all the error blocks
 errorblocks = []
 
 #setup for error blocks
@@ -96,92 +104,76 @@ errorblock = ErrorBlock()
 errorblock.errs.append(all_errs.loc[lastidx])
 
 for idx in all_errs.index[1:]:
-    #if next index is consecutive append to error.errorlist
+    #if next index is consecutively after the last index we saw, append to error.errorlist
     if idx-lastidx==1: 
-        errorblock.errs.append(all_errs.loc[idx])
+        errorblock.errs.append(all_errs.loc[idx]) #append the error we're looking at to the error block
         
-    #else, append this errorblock to the errormake a new error
+    #else, append this errorblock to the errormake then start a new error block
     else:
-        errorblock.setPrevLines(data) #get previous lines
+        errorblock.setPrevLines(data) #get & set previous lines from this error
         errorblocks.append(errorblock)
         errorblock = ErrorBlock()
-        errorblock.errs.append(all_errs.loc[idx])
-        
+        errorblock.errs.append(all_errs.loc[idx]) #append the error we're looking at to the error block
+
+    #update the last index we've seen
     lastidx = idx
+    
 #append the last block
 errorblock.setPrevLines(data)
 errorblocks.append(errorblock)
+########################################
 
-#[  13 2554]
-##del errorblocks[13]
-##del errorblocks[2553]
-
+#get corpus for tokens
 corpus = getCorpus(errorblocks)
+
+#tokenize error blocks
 errorblocks = [errblock.setFeatures(corpus) for errblock in errorblocks]
+
+#get all the feature vectors from the error blocks
 x = [list(errblock.features.values()) for errblock in errorblocks]
 
+#normalize data
 from sklearn.preprocessing import MinMaxScaler
 scaled = MinMaxScaler().fit(x).transform(x)
 
+#find the best features with PCA
 from sklearn.decomposition import PCA
-pca = PCA(n_components = 2)#'mle', svd_solver = 'full')
-##x = pca.fit_transform(scaled)
+pca = PCA(n_components = 2)
 scaled = pca.fit_transform(scaled)
-##from sklearn.preprocessing import MinMaxScaler
-##
-##scaled = MinMaxScaler().fit(x).transform(x)
 
+#cluster the data and get the number of points in each cluster
+from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters=2).fit(scaled)
 import numpy
 unique, counts = numpy.unique(kmeans.labels_, return_counts=True)
 
+#get an example from each cluster to display
+ex0 = numpy.argwhere(kmeans.labels_ == 0)[0][0]
+ex1 = numpy.argwhere(kmeans.labels_ == 1)[0][0]
+err0 = errorblocks[ex0]
+err1 = errorblocks[ex1]
+print("{}\n\n{}".format(err0,err1))
 
-LABEL_COLOR_MAP = {0 : 'green',
-                   1 : 'red'
-##                   2 : 'blue',
-##                   3 : 'yellow'
-                   }
-
-color = [LABEL_COLOR_MAP[i] for i in kmeans.labels_]
-
+#plot the data
 import matplotlib.pyplot as plt
-
+LABEL_COLOR_MAP = {0 : 'green', 1 : 'red'}
+color = [LABEL_COLOR_MAP[i] for i in kmeans.labels_]
 plt.scatter(scaled[:,0],scaled[:,1],c=color)
 
-print("feature size: {}".format(len(scaled[0])))
+#plt.show() is down below
 
+#print info about data set
+print("feature size: {}".format(len(scaled[0]))) #corresponds to the n_components in the pca call above
+clusterstring = ""
 for idx,cluster in enumerate(counts):
-    print("{} cluster: {}".format(LABEL_COLOR_MAP[idx],cluster))
-#print("cluster1: {}, cluster2: {}".format(counts[0],counts[1]))
-##weirdOnes = numpy.where(kmeans.labels_ == 1)[0]
-##print("weird ones are: {}".format(weirdOnes))
+    clusterstring += "{} cluster: {}\n".format(LABEL_COLOR_MAP[idx],cluster) #{color} cluster: #
 
+print(clusterstring)
 end = int(time.time())
-print("took {} seconds".format(end-start))
+print("took {} seconds".format(end-start)) #time it took to run the program
 
-
+#show the plot
+plt.title(clusterstring)
+plt.xlabel("principal component 1")
+plt.ylabel("principal component 2")
 plt.show()
-
-###### template
-##y = []
-##for c in range(n_classes):
-##    it = c*8
-##    cls = pcatrans[n_samples*c:n_samples*(c+1)]
-##    kmeans = KMeans(n_clusters=8, random_state=0).fit(cls)
-##    labels = kmeans.labels_
-##    labels = [label+it for label in labels]
-##    y+=labels
-
-
-
-####for formatting the csv, but this doesn't work well
-##csv=False
-##if csv:
-##    f = open("reformat.csv",'rb')
-##    d = f.readlines()
-##    f.close()
-##    for idx,line in enumerate(d):
-##        d[idx] = line.replace(b",",b' ').rstrip(b",")
-##    f = open("reformat.csv",'wb')
-##    f.writelines(d)
-##    f.close()
